@@ -1,0 +1,6 @@
+v1.0.0
+- živé vysílání, archiv, nahrávky a vyhledávání
+- přepínání profilů, přihlášení přes jméno/heslo nebo QR kód
+- nastavení rozděleno podle úrovní, diagnostika na úrovni Expert
+
+

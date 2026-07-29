@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- Levels: 0 basic, 1 standard, 2 advanced, 3 expert. Everything that only
+     exists to work out why DRM or entitlements misbehave sits at 3, so the
+     everyday screen stays short. -->
+<settings version="1">
+    <section id="plugin.video.vodafonetv" label="30000">
+
+        <category id="login" label="30001">
+            <group id="1" label="30001">
+                <!-- How this device authenticates. web: identity is a generated
+                     deviceId + RSA key, the .wvd is only used for playback, so
+                     one .wvd can back several devices. das: identity is the
+                     .wvd's Widevine device (Nagra DAS) -- password-free /udid
+                     and QR pairing, but one .wvd = one device. -->
+                <setting id="auth_scheme" type="string" label="30110" help="30111">
+                    <level>1</level>
+                    <default>web</default>
+                    <visible>false</visible>
+                    <constraints>
+                        <options>
+                            <option label="30112">web</option>
+                            <option label="30113">das</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <!-- No username or password here on purpose: they are needed
+                     once, to register this device, and the addon asks for them
+                     then. Afterwards the device id is the credential. -->
+                <setting id="sign_in" type="action" label="30002" help="30003">
+                    <level>0</level>
+                    <data>RunPlugin(plugin://$ID?action=sign_in)</data>
+                    <!-- closes the settings dialog first, otherwise the QR
+                         window would come up behind it -->
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
+                <setting id="reset_device_id" type="action" label="30004" help="30005">
+                    <level>1</level>
+                    <data>RunPlugin(plugin://$ID?action=reset_device_id)</data>
+                    <control type="button" format="action">
+                        <close>false</close>
+                    </control>
+                </setting>
+                <setting id="reset_session" type="action" label="30006" help="30007">
+                    <level>1</level>
+                    <data>RunPlugin(plugin://$ID?action=reset_session)</data>
+                    <control type="button" format="action">
+                        <close>false</close>
+                    </control>
+                </setting>
+            </group>
+        </category>
+
+        <category id="general" label="30010">
+            <group id="1" label="30010">
+                <setting id="channel_numbers" type="string" label="30012">
+                    <level>0</level>
+                    <default>nezobrazovat</default>
+                    <constraints>
+                        <options>
+                            <option label="30013">nezobrazovat</option>
+                            <option label="30014">číslo kanálu</option>
+                            <option label="30015">pořadové číslo</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <setting id="addon_live_mode" type="string" label="30104" help="30105">
+                    <level>0</level>
+                    <default>live</default>
+                    <constraints>
+                        <options>
+                            <option label="30018">catchup</option>
+                            <option label="30019">live</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <setting id="live_mode" type="string" label="30017" help="30020">
+                    <level>0</level>
+                    <default>catchup</default>
+                    <constraints>
+                        <options>
+                            <option label="30018">catchup</option>
+                            <option label="30019">live</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <setting id="live_delay" type="integer" label="30102" help="30103">
+                    <level>1</level>
+                    <default>5</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <maximum>60</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="hide_unsubscribed" type="boolean" label="30021" help="30022">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="cache_logos" type="boolean" label="30100" help="30101">
+                    <level>1</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="search_history" type="integer" label="30011">
+                    <level>1</level>
+                    <default>10</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="edit" format="integer"/>
+                </setting>
+                <setting id="hide_settings" type="boolean" label="30016">
+                    <level>1</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="entitlement_reset" type="action" label="30023">
+                    <level>2</level>
+                    <data>RunPlugin(plugin://$ID?action=entitlement_reset)</data>
+                    <control type="button" format="action">
+                        <close>false</close>
+                    </control>
+                </setting>
+                <setting id="entitlement_probe" type="action" label="30024">
+                    <level>3</level>
+                    <data>RunPlugin(plugin://$ID?action=entitlement_probe)</data>
+                    <control type="button" format="action">
+                        <close>false</close>
+                    </control>
+                </setting>
+            </group>
+        </category>
+
+        <!-- Feeding the channels and guide into a Kodi TV (PVR) client, two ways:
+             the IPTV Manager add-on, or a direct M3U/EPG file export that
+             IPTV Simple reads. Both share one settings screen. -->
+        <category id="iptv" label="30092">
+
+            <!-- Direct IPTV Simple export: writes playlist.m3u8 and epg.xml into
+                 the addon data folder (libs/export.py) and can set up a dedicated
+                 IPTV Simple client pointing at them, no IPTV Manager needed. -->
+            <group id="2" label="30085">
+                <setting id="iptvsimple_export" type="boolean" label="30086" help="30087">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <!-- Which channel numbers the M3U/EPG feeds (tvg-chno) carry.
+                     Applies to both IPTV Manager and the direct export. -->
+                <setting id="export_channel_numbers" type="string" label="30095" help="30096">
+                    <level>0</level>
+                    <default>vodafone</default>
+                    <constraints>
+                        <options>
+                            <option label="30097">vodafone</option>
+                            <option label="30098">addon</option>
+                            <option label="30099">sequential</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <setting id="iptvsimple_interval" type="integer" label="30088" help="30089" parent="iptvsimple_export">
+                    <level>1</level>
+                    <default>12</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <maximum>48</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="iptvsimple_export">true</dependency>
+                    </dependencies>
+                    <control type="edit" format="integer"/>
+                </setting>
+                <setting id="export_iptvsimple" type="action" label="30090" help="30091">
+                    <level>0</level>
+                    <data>RunPlugin(plugin://$ID?action=export_iptvsimple)</data>
+                    <!-- close settings first so the progress bar and the result
+                         dialog are not hidden behind the settings window -->
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
+                <setting id="configure_iptvsimple" type="action" label="30093" help="30094">
+                    <level>0</level>
+                    <data>RunPlugin(plugin://$ID?action=configure_iptvsimple)</data>
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
+            </group>
+
+            <!-- Read by service.iptv.manager (github.com/add-ons/service.iptv.manager).
+                 The two *_uri values are the plugin routes it calls back into;
+                 they are fixed, so they are hidden and only the toggle shows. -->
+            <group id="1" label="30080">
+                <setting id="iptv.enabled" type="boolean" label="30081" help="30082">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="iptv.channels_uri" type="string" label="30083">
+                    <level>0</level>
+                    <default>plugin://plugin.video.vodafonetv/?action=iptv_channels</default>
+                    <visible>false</visible>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                </setting>
+                <setting id="iptv.epg_uri" type="string" label="30084">
+                    <level>0</level>
+                    <default>plugin://plugin.video.vodafonetv/?action=iptv_epg</default>
+                    <visible>false</visible>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                </setting>
+            </group>
+
+        </category>
+
+        <category id="drm" label="30030">
+            <group id="1" label="30030">
+                <setting id="use_pywidevine" type="boolean" label="30031" help="30032">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="wvd_file" type="path" label="30033" parent="use_pywidevine">
+                    <level>2</level>
+                    <default></default>
+                    <constraints>
+                        <writable>false</writable>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="use_pywidevine">true</dependency>
+                    </dependencies>
+                    <control type="button" format="file">
+                        <heading>30033</heading>
+                    </control>
+                </setting>
+                <setting id="wv_cert_source" type="string" label="30034" help="30035" parent="use_pywidevine">
+                    <level>3</level>
+                    <default>auto</default>
+                    <constraints>
+                        <options>
+                            <option label="30036">auto</option>
+                            <option label="30037">widevine</option>
+                            <option label="30038">server</option>
+                            <option label="30039">none</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="use_pywidevine">true</dependency>
+                    </dependencies>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <!-- Hidden from the UI: only "pywidevine" is accepted by the
+                     licence server; the other shapes exist purely for future
+                     protocol tests. Kept here so the default still applies. -->
+                <setting id="wv_variant" type="string" label="30040" help="30041" parent="use_pywidevine">
+                    <level>3</level>
+                    <visible>false</visible>
+                    <default>pywidevine</default>
+                    <constraints>
+                        <options>
+                            <option label="30042">pywidevine</option>
+                            <option label="30043">v22</option>
+                            <option label="30044">v22+cdm</option>
+                            <option label="30045">v22+cdm+core</option>
+                            <option label="30046">v22+cdm+core-unsigned</option>
+                            <option label="30047">v22+cdm+core-plaintext</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="use_pywidevine">true</dependency>
+                    </dependencies>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <setting id="wv_isa_fallback" type="boolean" label="30050" parent="use_pywidevine">
+                    <level>3</level>
+                    <default>false</default>
+                    <dependencies>
+                        <dependency type="enable" setting="use_pywidevine">true</dependency>
+                    </dependencies>
+                    <control type="toggle"/>
+                </setting>
+                <!-- Hidden from the UI: the wvd-vault is opt-in and server-side
+                     infrastructure, not something a normal user configures. -->
+                <setting id="wv_vault_url" type="string" label="30052" help="30053" parent="use_pywidevine">
+                    <level>2</level>
+                    <visible>false</visible>
+                    <default>https://unheroical-fredda-surprisingly.ngrok-free.dev/</default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="use_pywidevine">true</dependency>
+                    </dependencies>
+                    <control type="edit" format="string">
+                        <heading>30052</heading>
+                    </control>
+                </setting>
+                <setting id="wv_vault_key" type="string" label="30054" help="30055" parent="use_pywidevine">
+                    <level>2</level>
+                    <visible>false</visible>
+                    <default>*pP.!$:3SG\ExQ7+fV}o</default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="use_pywidevine">true</dependency>
+                    </dependencies>
+                    <control type="edit" format="string">
+                        <heading>30054</heading>
+                    </control>
+                </setting>
+            </group>
+        </category>
+
+        <category id="logging" label="30060">
+            <group id="1" label="30060">
+                <setting id="log_request_url" type="boolean" label="30061">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="log_response" type="boolean" label="30062">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <!-- Written by service.py, read by libs/stream.py. Hidden, but
+                     it still needs a control: Kodi refuses to load a setting
+                     without one ("missing <control> tag"), and then getSetting
+                     answers with nothing at all. -->
+                <setting id="proxy_port" type="string" label="30070">
+                    <level>0</level>
+                    <default></default>
+                    <visible>false</visible>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                </setting>
+            </group>
+        </category>
+
+    </section>
+</settings>

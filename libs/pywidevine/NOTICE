@@ -1,0 +1,17 @@
+Widevine CDM implementation
+===========================
+
+This package is a dependency-free reimplementation of the Widevine CDM flow
+(device .wvd loading, privacy-mode license challenge generation and license
+parsing) written for this add-on. It follows the same protocol and data
+structures as the original `pywidevine` project:
+
+    https://github.com/devine-dl/pywidevine   (GPL-3.0-only)
+
+Credit for the reference implementation and the reverse-engineered protocol
+belongs to that project and its contributors. The protobuf message definitions
+mirror Google Widevine's `license_protocol.proto`.
+
+This reimplementation is distributed under the same license as the rest of this
+add-on (GNU GPL v3, see the repository-level LICENSE.txt), which is compatible
+with pywidevine's GPL-3.0 terms.

@@ -1,0 +1,39 @@
+﻿<addon id="plugin.video.vodafonetv" name="Vodafone TV" provider-name="wally" version="1.0.0">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="inputstream.adaptive" version="19.0.0"/>
+    <import addon="script.module.pycryptodome" version="3.4.3"/>
+    <import addon="script.module.six" version="1.16.0+matrix.1"/>
+    <import addon="script.module.pyasn1" version="0.4.8+matrix.1"/>
+  </requires>
+  <extension library="main.py" point="xbmc.python.pluginsource">
+    <provides>video</provides>
+  </extension>
+  <extension library="service.py" point="xbmc.service"/>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_GB">Vodafone TV</summary>
+    <summary lang="cs_CZ">Vodafone TV</summary>
+    <description lang="en_GB">
+[B]Addon for Vodafone TV[/B]
+Live TV, archive, recordings, search and export for IPTV Simple Client.
+Addon was created based on the O2TV addon by Waladir.
+    </description>
+    <description lang="cs_CZ">
+[B]Doplněk pro Vodafone TV[/B]
+Živé vysílání, archiv, nahrávky, vyhledávání a export pro IPTV Simple Client.
+Addon byl vytvořen na základě addonu O2TV od Waladira.
+    </description>
+    <platform>all</platform>
+    <source>https://github.com/WallyCZ/plugin.video.vodafonetv</source>
+    <news>
+v1.0.0
+- živé vysílání, archiv, nahrávky a vyhledávání
+- přepínání profilů, přihlášení přes jméno/heslo nebo QR kód
+- export do IPTV Simple Client
+- nastavení rozděleno podle úrovní, diagnostika na úrovni Expert
+    </news>
+    <assets>
+        <icon>icon.png</icon>
+    </assets>
+  </extension>
+</addon>

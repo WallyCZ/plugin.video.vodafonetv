@@ -1,0 +1,341 @@
+# Kodi Media Center language file
+# Addon Name: Vodafone TV
+# Addon id: plugin.video.vodafonetv
+# Addon Provider: waladir
+#
+# The addon's interface is Czech only, so the strings are Czech here too --
+# en_gb is the file Kodi falls back to whatever its interface language is.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: cs\n"
+
+msgctxt "#30000"
+msgid "Vodafone TV"
+msgstr ""
+
+# Přihlášení
+
+msgctxt "#30001"
+msgid "Přihlášení"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Přihlásit zařízení"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Jménem a heslem, nebo kódem z mobilní aplikace. Přihlašovací údaje se nikam neukládají."
+msgstr ""
+
+msgctxt "#30004"
+msgid "Device ID zařízení (zobrazit / změnit)"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Nové Device ID znamená novou registraci zařízení a zabere jeden slot na účtu."
+msgstr ""
+
+msgctxt "#30006"
+msgid "Nová session"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Zahodí uloženou session; při dalším spuštění se doplněk přihlásí znovu."
+msgstr ""
+
+# Nastavení
+
+msgctxt "#30010"
+msgid "Nastavení"
+msgstr ""
+
+msgctxt "#30011"
+msgid "Historie vyhledávání"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Čísla kanálů"
+msgstr ""
+
+msgctxt "#30013"
+msgid "nezobrazovat"
+msgstr ""
+
+msgctxt "#30014"
+msgid "číslo kanálu"
+msgstr ""
+
+msgctxt "#30015"
+msgid "pořadové číslo"
+msgstr ""
+
+msgctxt "#30016"
+msgid "Skrýt Nastavení Vodafone TV v menu"
+msgstr ""
+
+msgctxt "#30017"
+msgid "Přehrávání kanálu v TV klientovi (PVR)"
+msgstr ""
+
+msgctxt "#30018"
+msgid "catchup = od začátku pořadu s přetáčením"
+msgstr ""
+
+msgctxt "#30019"
+msgid "live = jen živě"
+msgstr ""
+
+msgctxt "#30020"
+msgid "catchup pustí kanál od začátku běžícího pořadu a umožní přetáčení, live pustí jen živý přenos."
+msgstr ""
+
+msgctxt "#30021"
+msgid "Skrýt kanály bez předplatného"
+msgstr ""
+
+msgctxt "#30022"
+msgid "Kanály, které účet nemá předplacené, se v seznamu vůbec neobjeví."
+msgstr ""
+
+msgctxt "#30023"
+msgid "Vymazat seznam nepředplacených kanálů"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Diagnostika předplatného (zjistí, co API vrací)"
+msgstr ""
+
+# DRM
+
+msgctxt "#30030"
+msgid "DRM"
+msgstr ""
+
+msgctxt "#30031"
+msgid "Vlastní CDM (pywidevine) místo Widevine v ISA"
+msgstr ""
+
+msgctxt "#30032"
+msgid "Nutné pro placené kanály: InputStream Adaptive neumí privacy mode, který licenční server vyžaduje."
+msgstr ""
+
+msgctxt "#30033"
+msgid "Soubor .wvd (prázdné = hledat v addon_data)"
+msgstr ""
+
+msgctxt "#30034"
+msgid "Service certifikát pro privacy mode"
+msgstr ""
+
+msgctxt "#30035"
+msgid "auto = dotaz na licenční server, widevine = common privacy cert, server = z Nagra/service_cert.b64, none = bez privacy mode."
+msgstr ""
+
+msgctxt "#30036"
+msgid "auto"
+msgstr ""
+
+msgctxt "#30037"
+msgid "widevine"
+msgstr ""
+
+msgctxt "#30038"
+msgid "server"
+msgstr ""
+
+msgctxt "#30039"
+msgid "none"
+msgstr ""
+
+msgctxt "#30040"
+msgid "Podoba challenge (nastaví diagnostika)"
+msgstr ""
+
+msgctxt "#30041"
+msgid "Měřením ověřeno, že funguje čistý pywidevine. Ostatní volby jsou pro diagnostiku."
+msgstr ""
+
+msgctxt "#30042"
+msgid "pywidevine"
+msgstr ""
+
+msgctxt "#30043"
+msgid "v22"
+msgstr ""
+
+msgctxt "#30044"
+msgid "v22+cdm"
+msgstr ""
+
+msgctxt "#30045"
+msgid "v22+cdm+core"
+msgstr ""
+
+msgctxt "#30046"
+msgid "v22+cdm+core-unsigned"
+msgstr ""
+
+msgctxt "#30047"
+msgid "v22+cdm+core-plaintext"
+msgstr ""
+
+msgctxt "#30050"
+msgid "Při selhání zkusit Widevine v ISA (nefunguje, spotřebuje session sloty)"
+msgstr ""
+
+msgctxt "#30052"
+msgid "Adresa serveru se zařízeními (wvd-vault)"
+msgstr ""
+
+msgctxt "#30053"
+msgid "Když není k dispozici lokální .wvd, doplněk si vyžádá jedno zařízení z tohoto serveru (např. http://192.168.1.10:8000)"
+msgstr ""
+
+msgctxt "#30054"
+msgid "Klíč API serveru se zařízeními"
+msgstr ""
+
+msgctxt "#30055"
+msgid "Nepovinné. Musí odpovídat WVVAULT_API_KEY na serveru"
+msgstr ""
+
+# Logování
+
+msgctxt "#30060"
+msgid "Logování"
+msgstr ""
+
+msgctxt "#30061"
+msgid "Logování požadavků - URL"
+msgstr ""
+
+msgctxt "#30062"
+msgid "Logování odpovědí"
+msgstr ""
+
+msgctxt "#30070"
+msgid "Port proxy serveru"
+msgstr ""
+
+# IPTV Manager
+
+msgctxt "#30080"
+msgid "IPTV Manager"
+msgstr ""
+
+msgctxt "#30081"
+msgid "Povolit integraci s IPTV Manager"
+msgstr ""
+
+msgctxt "#30082"
+msgid "Zpřístupní kanály a program (EPG) doplňku IPTV Manager pro import do TV klienta."
+msgstr ""
+
+msgctxt "#30083"
+msgid "Adresa kanálů pro IPTV Manager"
+msgstr ""
+
+msgctxt "#30084"
+msgid "Adresa EPG pro IPTV Manager"
+msgstr ""
+
+msgctxt "#30085"
+msgid "IPTV Simple"
+msgstr ""
+
+msgctxt "#30086"
+msgid "Generovat soubory M3U a EPG"
+msgstr ""
+
+msgctxt "#30087"
+msgid "Zapisuje playlist.m3u8 a epg.xml do datové složky doplňku. Nasměruj na ně IPTV Simple Client (typ cesty: Místní)."
+msgstr ""
+
+msgctxt "#30088"
+msgid "Interval obnovy (hodiny)"
+msgstr ""
+
+msgctxt "#30089"
+msgid "Jak často služba na pozadí přegeneruje soubory M3U a EPG."
+msgstr ""
+
+msgctxt "#30090"
+msgid "Generovat nyní"
+msgstr ""
+
+msgctxt "#30091"
+msgid "Ihned vytvoří soubory M3U a EPG a zobrazí cesty pro nastavení IPTV Simple."
+msgstr ""
+
+msgctxt "#30092"
+msgid "IPTV Export"
+msgstr ""
+
+msgctxt "#30093"
+msgid "Nastavit IPTV Simple klienta (Vodafone TV CZ)"
+msgstr ""
+
+msgctxt "#30094"
+msgid "Vytvoří vyhrazený TV klient IPTV Simple s automaticky nastavenými cestami k M3U a EPG."
+msgstr ""
+
+msgctxt "#30095"
+msgid "Číslování kanálů v exportu"
+msgstr ""
+
+msgctxt "#30096"
+msgid "Která čísla kanálů se zapíší do M3U (tvg-chno). Platí pro IPTV Manager i přímý export."
+msgstr ""
+
+msgctxt "#30097"
+msgid "Oficiální Vodafone"
+msgstr ""
+
+msgctxt "#30098"
+msgid "Podle doplňku"
+msgstr ""
+
+msgctxt "#30099"
+msgid "Pořadové (1, 2, 3…)"
+msgstr ""
+
+msgctxt "#30100"
+msgid "Stahovat loga kanálů lokálně"
+msgstr ""
+
+msgctxt "#30101"
+msgid "Uloží loga kanálů do datové složky, aby se v seznamech zobrazovala spolehlivě (server jinak při hromadném načtení část log odmítne)."
+msgstr ""
+
+msgctxt "#30102"
+msgid "Zpoždění za živým vysíláním (s)"
+msgstr ""
+
+msgctxt "#30103"
+msgid "Přehrávání drží pár sekund za živým okrajem, aby server stihl vygenerovat nejnovější segment. Vyšší = stabilnější, ale dále od živého; nižší = blíž živému, ale hrozí zamrzání. 0 = na živém okraji."
+msgstr ""
+
+msgctxt "#30104"
+msgid "Přehrávání kanálu v doplňku"
+msgstr ""
+
+msgctxt "#30105"
+msgid "Jak přehrává kanál seznam v samotném doplňku (nezávisle na TV klientovi výše). live = živě nejblíž reálnému času; catchup = od začátku pořadu s přetáčením."
+msgstr ""
+
+msgctxt "#30110"
+msgid "Způsob přihlášení"
+msgstr ""
+
+msgctxt "#30111"
+msgid "web = identita je vygenerované deviceId + RSA klíč, .wvd soubor slouží jen k přehrávání, takže z jednoho .wvd lze registrovat více zařízení. das = identita je Widevine zařízení z .wvd (Nagra DAS) – přihlášení bez hesla i přes QR kód, ale jeden .wvd = jedno zařízení. das vyžaduje vlastní .wvd (v addon_data nebo nastavený v DRM); s vestavěným .wvd se vždy použije web."
+msgstr ""
+
+msgctxt "#30112"
+msgid "web (více zařízení na jeden .wvd)"
+msgstr ""
+
+msgctxt "#30113"
+msgid "zařízení / DAS (QR párování)"
+msgstr ""
