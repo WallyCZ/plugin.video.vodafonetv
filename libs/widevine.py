@@ -63,6 +63,12 @@ FRIENDLY_ERRORS = {
     'apigw-11001': 'Neplatný požadavek na API',
     # wvd-vault has no free .wvd to lease right now.
     'vault_no_device': 'Není volné zařízení. Zkuste to prosím za pár dní.',
+    # wvd-vault did not accept the proof that we hold a Vodafone session.
+    'vault_rejected': 'Server se zařízeními neověřil vaše předplatné – '
+                      'zkuste vytvořit novou session',
+    # The household already uses as many devices as the vault hands out.
+    'vault_household_limit': 'Vaše domácnost už využívá všechna povolená '
+                             'zařízení – uvolněte jedno z nich',
 }
 
 
@@ -77,6 +83,8 @@ def friendly_error(error):
         return 'Server se zařízeními neodpovídá – zkontrolujte adresu v nastavení'
     if 'vault 401' in text:
         return 'Server se zařízeními odmítl klíč API – zkontrolujte nastavení'
+    if 'not signed in' in text:
+        return 'Zařízení lze vyžádat až po přihlášení k Vodafone TV'
     if '.wvd' in text:
         return 'Chybí soubor .wvd – zkontrolujte nastavení DRM'
     if 'no Widevine' in text:
@@ -135,19 +143,30 @@ def get_device_path():
     return find_wvd(profile_dir, addon_dir, os.path.join(addon_dir, 'libs'))
 
 
-def load_device():
+def load_device(session=None):
     path = get_device_path()
     if not path:
         # No local .wvd: lease one from the wvd-vault, if configured. It is then
         # cached in the profile dir and found by get_device_path() from now on.
+        # The vault wants proof that we hold a live Vodafone session, so it is
+        # handed the one we are playing with (loaded from disk when there is
+        # none, e.g. when a caller reaches this outside playback).
         from libs import vault
         if vault.is_configured():
             try:
-                path = vault.fetch()
+                path = vault.fetch(session)
             except vault.VaultNoDevice:
                 raise WidevineError('no free device available from the vault -- '
                                     'try again in a few days',
                                     code='vault_no_device')
+            except vault.VaultHouseholdLimit as e:
+                raise WidevineError('the household already holds every device '
+                                    'the vault allows it (%s)' % e,
+                                    code='vault_household_limit')
+            except vault.VaultRejected as e:
+                raise WidevineError('the vault refused our proof of '
+                                    'subscription: %s' % e,
+                                    code='vault_rejected')
             except vault.VaultError as e:
                 raise WidevineError('vault error: %s' % e)
     if not path:
@@ -977,7 +996,7 @@ def get_content_keys(session, api, entitlement_body, asset_id, program_id,
 
     # Load the device -- a local .wvd, or one leased from the wvd-vault when
     # none is present (see load_device). The whole CDM exchange runs locally.
-    device = load_device()
+    device = load_device(session)
     log_device_identity(device)
 
     certificate = get_service_certificate(session, api, entitlement_body,

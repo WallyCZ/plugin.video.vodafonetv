@@ -200,6 +200,14 @@ msgctxt "#30055"
 msgid "Nepovinné. Musí odpovídat WVVAULT_API_KEY na serveru"
 msgstr ""
 
+msgctxt "#30056"
+msgid "Neověřovat certifikát serveru se zařízeními"
+msgstr ""
+
+msgctxt "#30057"
+msgid "Jen pro server s vlastnoručně podepsaným certifikátem. Ověření požadavku obsahuje přihlašovací ks, bez kontroly certifikátu ho lze odposlechnout"
+msgstr ""
+
 # Logování
 
 msgctxt "#30060"

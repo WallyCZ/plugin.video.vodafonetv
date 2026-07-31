@@ -327,6 +327,17 @@
                         <heading>30054</heading>
                     </control>
                 </setting>
+                <!-- The challenge sent to the vault carries the login ks, so
+                     its certificate is verified unless this is turned on. -->
+                <setting id="wv_vault_insecure" type="boolean" label="30056" help="30057" parent="use_pywidevine">
+                    <level>3</level>
+                    <visible>false</visible>
+                    <default>false</default>
+                    <dependencies>
+                        <dependency type="enable" setting="use_pywidevine">true</dependency>
+                    </dependencies>
+                    <control type="toggle"/>
+                </setting>
             </group>
         </category>
 

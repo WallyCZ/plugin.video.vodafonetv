@@ -1,3 +1,10 @@
+v1.0.1
+- půjčení .wvd ze serveru teď dokládá platné předplatné (podpis přihlašovacím
+  klíčem); jedna domácnost si může půjčit nejvýš tři zařízení
+- certifikát serveru se zařízeními se ověřuje (u vlastního certifikátu lze
+  ověřování vypnout v nastavení)
+- README má sekci s častými problémy, česky i anglicky
+
 v1.0.0
 - živé vysílání, archiv, nahrávky a vyhledávání
 - přepínání profilů, přihlášení přes jméno/heslo nebo QR kód
