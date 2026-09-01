@@ -7,7 +7,8 @@ The web app builds the whole thing from three calls the addon already speaks:
     carry Children whose ``URL`` is a Kaltura category id -- one per rail/genre.
   * asset/list with a KalturaChannelFilter(idEqual=<category id>) returns the
     titles in that rail. Each title is a Kaltura asset:
-        type 736 -- a film/episode: has mediaFiles, so it is playable.
+        type 736 -- a film: has mediaFiles, so it is playable.
+        type 737 -- an episode of a series: playable the same way.
         type 738 -- a series container: no files; drilled into by Series ID.
         type 740 -- a package/bundle (e.g. "Filmbox OD"): its ``channels`` meta
                     is another category id, so it drills in like any rail.
@@ -24,9 +25,9 @@ import xbmcgui
 import xbmcplugin
 
 from libs.utils import get_url, clientTag, apiVersion
-from libs.session import Session
+from libs.session import Session, recover_expired
 from libs.epg import epg_listitem
-from libs.api import API
+from libs.api import API, is_ks_error
 from libs import tvapi
 
 _handle = int(sys.argv[1])
@@ -39,6 +40,7 @@ FOLDERS_MENU_ID = 100000531    # "FOLDERS" -- the genre catalogue
 
 # Kaltura asset type ids used by the VOD catalogue.
 TYPE_MOVIE = 736
+TYPE_EPISODE = 737
 TYPE_SERIES = 738
 TYPE_PACKAGE = 740
 
@@ -67,6 +69,12 @@ def asset_list_page(asset_filter, page_index, page_size = PAGE_SIZE):
             'clientTag': clientTag, 'apiVersion': apiVersion}
     api = API()
     data = api.call_api(url = ASSET_LIST_URL, data = post, headers = api.headers, nolog = True)
+    if is_ks_error(data):
+        session = recover_expired(data)
+        if session is not None:
+            post['ks'] = session.ks
+            data = api.call_api(url = ASSET_LIST_URL, data = post,
+                                headers = api.headers, nolog = True)
     result = data.get('result') if isinstance(data, dict) else None
     if not result or 'objects' not in result:
         return [], 0
@@ -159,18 +167,21 @@ def list_vod_category(category_id, label, page = 1):
 def list_vod_series(series_id, label, page = 1):
     """The episodes of a series, by its Series ID.
 
-    No series click was captured, so the exact filter is best-effort: a
-    KalturaSearchAssetFilter on the Series ID the series asset carries. If a
-    given deployment names the field differently the list comes back empty and
-    the user is told, rather than the addon failing.
+    Same filter epg.py uses to expand a series (get_series_epg): the field name
+    carries a space and comes in two casings, so both are OR'd. ``typeIn`` keeps
+    the episodes (737) and any film-length entry (736) while dropping the series
+    container (738) itself -- it matches its own id and would otherwise come
+    back as a folder looping onto this very listing.
     """
     page = int(page)
     xbmcplugin.setPluginCategory(_handle, label)
-    ksql = "(and SeriesId='%s')" % series_id
+    sid = str(series_id).replace("'", "")
+    ksql = "(or series ID='%s' Series ID='%s')" % (sid, sid)
     objects, total = asset_list_page(
         {'objectType': 'KalturaSearchAssetFilter', 'kSql': ksql,
-         'orderBy': 'START_DATE_ASC', 'typeIn': '%d' % TYPE_MOVIE}, page)
-    count = _render_assets(objects, label)
+         'orderBy': 'START_DATE_ASC',
+         'typeIn': '%d,%d' % (TYPE_MOVIE, TYPE_EPISODE)}, page)
+    count = _render_assets(_by_episode(objects), label)
     if count == 0 and page == 1:
         xbmcgui.Dialog().notification('Vodafone TV', 'Epizody se nepodařilo načíst',
                                       xbmcgui.NOTIFICATION_INFO, 4000)
@@ -193,7 +204,7 @@ def _render_assets(assets, label):
             continue
         asset_type = asset.get('type')
         name = asset.get('name') or ''
-        list_item = xbmcgui.ListItem(label = name)
+        list_item = xbmcgui.ListItem(label = _episode_label(asset) or name)
         _decorate(list_item, asset)
 
         if asset_type == TYPE_SERIES:
@@ -227,6 +238,47 @@ def _render_assets(assets, label):
 # ---------------------------------------------------------------------------
 # asset helpers
 # ---------------------------------------------------------------------------
+
+def _number(value):
+    """A meta that holds a number -- Kaltura sends those as KalturaDoubleValue,
+    so 9 arrives as 9.0 and int() must go through float()."""
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _by_episode(assets):
+    """Episodes in season/episode order; anything unnumbered keeps its place at
+    the end. Sorting is per page, which holds every episode of a normal series
+    (PAGE_SIZE is 100)."""
+    def key(asset):
+        season = _number(_meta_value(asset, 'Season number'))
+        episode = _number(_meta_value(asset, 'Episode number'))
+        return (season is None and episode is None,
+                season if season is not None else 1 << 30,
+                episode if episode is not None else 1 << 30)
+    return sorted(assets, key = key)
+
+
+def _episode_label(asset):
+    """"S01E09 - Episode title" for an episode, else '' (use the plain name).
+
+    Every episode of a series carries the *series* name, so a listing of them is
+    a column of identical labels unless the numbering is put in front.
+    """
+    if asset.get('type') != TYPE_EPISODE:
+        return ''
+    season = _number(_meta_value(asset, 'Season number'))
+    episode = _number(_meta_value(asset, 'Episode number'))
+    if episode is None:
+        return ''
+    number = ('S%02dE%02d' % (season, episode)) if season else ('E%02d' % episode)
+    title = _meta_value(asset, 'Episode title') or ''
+    if not title or title == (asset.get('name') or ''):
+        return '%s %s' % (number, asset.get('name') or '')
+    return '%s - %s' % (number, title)
+
 
 def pick_file_id(asset):
     """The media file id to play -- the preferred DASH type, else None.

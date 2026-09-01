@@ -1,3 +1,11 @@
+v1.0.2
+- Videotéka: seriály se konečně rozbalí na epizody – dosud každý seriál skončil
+  hláškou "Epizody se nepodařilo načíst"; epizody jsou navíc seřazené podle
+  řady/dílu a označené jako S01E01 – název epizody
+- vypršelou přihlašovací relaci doplněk obnoví sám na pozadí, bez hlášky
+- pokud bylo zařízení odebráno ve správě účtu (Moje zařízení), doplněk to
+  napíše a nabídne přihlášení znovu místo obecného "Problém při přehrání"
+
 v1.0.1
 - půjčení .wvd ze serveru teď dokládá platné předplatné (podpis přihlašovacím
   klíčem); jedna domácnost si může půjčit nejvýš tři zařízení

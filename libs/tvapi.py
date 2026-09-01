@@ -46,7 +46,7 @@ def init_obj(session):
 
 def call(session, method, body = None, log_response = True):
     """POST to one gateway method. Returns the parsed response."""
-    from libs.api import API
+    from libs.api import API, is_ks_error
     from libs.widevine import redact
 
     from libs import dms
@@ -64,6 +64,15 @@ def call(session, method, body = None, log_response = True):
              % (method, redact({k: v for k, v in post.items() if k != 'initObj'}, 60)),
              xbmc.LOGINFO)
     data = api.call_api(url = url, data = signed, headers = headers)
+
+    if is_ks_error(data):
+        # The Token in the initObj is the same ks the phoenix API refuses; sign
+        # in again and repeat the call with a freshly built envelope.
+        from libs.session import recover_expired
+        if recover_expired(data, session) is not None:
+            post['initObj'] = init_obj(session)
+            signed = session.sign(headers, post)
+            data = api.call_api(url = url, data = signed, headers = headers)
 
     if isinstance(data, dict):
         if 'err' in data:

@@ -15,9 +15,9 @@ from urllib.parse import quote
 
 from datetime import datetime, timezone
 
-from libs.session import Session
+from libs.session import Session, recover_expired, UNREGISTERED_NOTIFICATION
 from libs.channels import Channels
-from libs.api import API
+from libs.api import API, is_ks_error
 from libs.epg import get_channel_epg, get_channel_live_epg
 from libs.utils import apiVersion, get_kodi_version
 from libs import widevine
@@ -455,12 +455,40 @@ def manifest_failed(data):
             or len(data['result']['sources']) == 0)
 
 
+def playback_error(data = None):
+    """Say why playback did not start; be specific about a refused session."""
+    if data is not None and is_ks_error(data):
+        # We got here with a ks the service rejects and could not replace --
+        # the device is unregistered, or the user declined to sign in again.
+        message = UNREGISTERED_NOTIFICATION
+    else:
+        message = 'Problém při přehrání'
+    xbmcgui.Dialog().notification('Vodafone TV', message,
+                                  xbmcgui.NOTIFICATION_ERROR, 5000)
+
+
+def renew_session(session, data, *posts):
+    """Sign in again when the manifest was refused for a stale session.
+
+    On success the posts are re-stamped with the new ks -- retrying with the
+    old one would be refused exactly the same way.
+    """
+    if recover_expired(data, session) is None:
+        return False
+    for post in posts:
+        if isinstance(post, dict) and 'ks' in post:
+            post['ks'] = session.ks
+    return True
+
+
 def play_stream(session: Session, post, asset_id, program_id, file_id, fallback_post = None, from_start = False):
     api = API()
 
     err = False
     if asset_id is not None:
         data = get_playback_manifest(session, api, post)
+        if manifest_failed(data) and renew_session(session, data, post, fallback_post):
+            data = get_playback_manifest(session, api, post)
         if manifest_failed(data) and fallback_post is not None:
             # e.g. CATCHUP refused for this programme -- fall back to plain live
             widevine.log('CATCHUP manifest unavailable, falling back to live',
@@ -468,7 +496,7 @@ def play_stream(session: Session, post, asset_id, program_id, file_id, fallback_
             post = fallback_post
             data = get_playback_manifest(session, api, post)
         if 'err' in data or not 'result' in data or not 'sources' in data['result']:
-            xbmcgui.Dialog().notification('Vodafone TV','Problém při přehrání', xbmcgui.NOTIFICATION_ERROR, 5000)
+            playback_error(data)
         else:
             if len(data['result']['sources']) > 0:
                 urls = {}
@@ -588,9 +616,9 @@ def play_stream(session: Session, post, asset_id, program_id, file_id, fallback_
                     xbmcplugin.setResolvedUrl(_handle, True, list_item)
 
                 else:
-                    xbmcgui.Dialog().notification('Vodafone TV','Problém při přehrání', xbmcgui.NOTIFICATION_ERROR, 5000)
+                    playback_error()
             else:
-                xbmcgui.Dialog().notification('Vodafone TV','Problém při přehrání', xbmcgui.NOTIFICATION_ERROR, 5000)
+                playback_error()
     else:
         xbmcgui.Dialog().notification('Vodafone TV','Nesprávný PIN', xbmcgui.NOTIFICATION_ERROR, 5000)
 

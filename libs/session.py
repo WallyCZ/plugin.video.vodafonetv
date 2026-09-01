@@ -28,6 +28,20 @@ from jose import jwk
 NO_PROMPT = False
 
 
+class LoginError(Exception):
+    """Signing in failed."""
+
+
+class NotRegisteredError(LoginError):
+    """The service does not know this device.
+
+    /udid answered without a session: either this installation was never
+    enrolled, or -- the case this exists for -- it was enrolled and has since
+    been removed in the Vodafone TV administration, which invalidates every ks
+    it was issued.
+    """
+
+
 def device_id_path():
     profile = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo('profile'))
     return os.path.join(profile, 'device_id.txt')
@@ -483,6 +497,52 @@ def login_error(data):
     return None
 
 
+# Once signing in again has failed, stop trying for a while: every further
+# request would fail the same way, and the user has already been told once. A
+# plugin run is over long before this lapses; the service, which lives as long
+# as Kodi does, gets to notice a device that was registered again in the
+# meantime.
+_renew_failed_at = 0
+RENEW_RETRY_AFTER = 10 * 60
+
+UNREGISTERED_MESSAGE = (
+    'Zařízení už není u Vodafone TV přihlášené.\n'
+    'Nejspíš bylo odebráno ve správě účtu (Moje zařízení), '
+    'nebo jeho registrace vypršela.\n\n'
+    'Chcete zařízení přihlásit znovu?')
+
+# The same thing in one line, for a notification (where a dialog is not an
+# option -- during playback, or after the user declined the dialog).
+UNREGISTERED_NOTIFICATION = ('Zařízení není přihlášené – přihlaste ho prosím '
+                             'znovu (Nastavení / QR kód)')
+
+
+def ask_reregister():
+    """Say the device is not signed in any more, and offer to fix it now."""
+    return bool(xbmcgui.Dialog().yesno('Vodafone TV', UNREGISTERED_MESSAGE,
+                                       nolabel = 'Zrušit',
+                                       yeslabel = 'Přihlásit znovu'))
+
+
+def recover_expired(data, session = None, prompt = True):
+    """Sign in again when `data` was refused because our ks is stale.
+
+    Returns the signed-in Session when the caller should repeat its request --
+    with the fresh `session.ks`, the old one stays refused -- and None when the
+    response was not a session failure or signing in again did not work out.
+    """
+    from libs.api import is_ks_error
+
+    if not is_ks_error(data):
+        return None
+    if time.time() - _renew_failed_at < RENEW_RETRY_AFTER:
+        return None
+    xbmc.log('Vodafone TV > the API refused our session (KS expired); signing '
+             'in again', xbmc.LOGWARNING)
+    session = session or Session()
+    return session if session.renew(prompt = prompt) else None
+
+
 class Session:
     def __init__(self):
         self.load_session()
@@ -491,12 +551,12 @@ class Session:
         self.get_token()
         self.save_session()
 
-    def get_token(self):
+    def get_token(self, enroll = True):
         # Sign in with the configured scheme. Both set self.session_key and hand
         # back (ks, login_expiry); after that the flow is identical -- find the
         # profile with household/get, then switchUser to it.
         api = API()
-        ks, login_expiry = self._login(api, auth_scheme())
+        ks, login_expiry = self._login(api, auth_scheme(), enroll = enroll)
 
         headers = api.headers
         headers.pop('vtv-authentication', None)
@@ -553,7 +613,7 @@ class Session:
         self.ks = data['result']['ks']
         self.ks_expiry = data['result']['expiry']
 
-    def _login(self, api, scheme):
+    def _login(self, api, scheme, enroll = True):
         """Sign in with the given scheme; set self.session_key.
 
         /udid signs the device in when it is already registered (no password).
@@ -561,6 +621,12 @@ class Session:
         pairing or username/password -- exactly like the TV app at first start.
         The session right is decoded per scheme (a Widevine licence for das, a
         JWE to our RSA key for web). Returns (ks, login_expiry).
+
+        With `enroll` off, a device the service does not know raises
+        NotRegisteredError instead of putting up the enrollment dialog -- that
+        is what renew() wants: sign a registered device back in silently, and
+        tell the difference between an expired session and a device that was
+        unregistered.
         """
         auth_headers, derive, brand = scheme_auth(api, scheme)
         headers = api.headers
@@ -575,6 +641,13 @@ class Session:
             xbmc.log('Vodafone TV > logged in with the device (%s)' % scheme,
                      xbmc.LOGINFO)
             return ks, find_expiry(data)
+
+        if enroll == False:
+            # Nothing to enroll here -- but keep a request that never reached
+            # the service (network trouble) apart from a real "who are you?".
+            if isinstance(data, dict) and 'err' in data:
+                raise LoginError(login_error(data))
+            raise NotRegisteredError(login_error(data) or 'no ks in the response')
 
         xbmc.log('Vodafone TV > device not registered (%s); asking how to '
                  'enroll it' % (login_error(data) or 'no ks in the response'),
@@ -595,6 +668,44 @@ class Session:
         xbmc.log('Vodafone TV > device enrolled and signed in (%s)' % scheme,
                  xbmc.LOGINFO)
         return ks, find_expiry(data)
+
+    def renew(self, prompt = True):
+        """Sign in again after the service refused the ks we hold.
+
+        The everyday case -- the session simply expired -- is invisible: /udid
+        signs the registered device straight back in, no password and no
+        dialog. A device the service no longer knows cannot be recovered that
+        way, so the user is told what happened and offered the enrollment
+        dialog rather than being left with "something went wrong".
+
+        Returns True when a fresh ks is in place; the caller must then repeat
+        its request with the new self.ks.
+
+        The stored session is left alone until a new one replaces it: clearing
+        it up front would send every Session() built later in this run into the
+        enrollment dialog, one per listing.
+        """
+        global _renew_failed_at
+
+        try:
+            self.get_token(enroll = False)
+        except NotRegisteredError as e:
+            xbmc.log('Vodafone TV > the service does not know this device any '
+                     'more (%s) -- it was probably unregistered in the Vodafone '
+                     'TV administration' % e, xbmc.LOGWARNING)
+            if prompt == False or NO_PROMPT or not ask_reregister():
+                _renew_failed_at = time.time()
+                return False
+            self.get_token()  # the full flow, enrollment dialog and all
+        except LoginError as e:
+            xbmc.log('Vodafone TV > signing in again failed: %s' % e, xbmc.LOGWARNING)
+            _renew_failed_at = time.time()
+            return False
+
+        self.save_session()
+        xbmc.log('Vodafone TV > signed in again after the API refused our session',
+                 xbmc.LOGINFO)
+        return True
 
     def sign(self, headers, post):
         sign_key_data = dict()

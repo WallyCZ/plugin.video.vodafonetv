@@ -21,6 +21,7 @@ import xbmcvfs
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
 
+from libs.api import find_api_error
 from libs.pywidevine import Cdm, Device, PSSH
 from libs.pywidevine.cdm import (SERVICE_CERTIFICATE_CHALLENGE, ServiceCertificate,
                                  make_core_message, LicenseType)
@@ -69,6 +70,11 @@ FRIENDLY_ERRORS = {
     # The household already uses as many devices as the vault hands out.
     'vault_household_limit': 'Vaše domácnost už využívá všechna povolená '
                              'zařízení – uvolněte jedno z nich',
+    # The ks we signed the license request with is not accepted any more. By
+    # this point the manifest call has already tried to sign in again, so what
+    # is left is a device the service no longer knows.
+    '500015': 'Zařízení není přihlášené – přihlaste ho prosím znovu',
+    '500016': 'Zařízení není přihlášené – přihlaste ho prosím znovu',
 }
 
 
@@ -571,28 +577,6 @@ def book_slot(session, api, asset_id, program_id, file_id):
                             code=error.get('code'))
     log('bookSlot ok: %s' % redact(data))
     return data
-
-
-def find_api_error(data):
-    """The API also reports failures inside 200 responses -- find those too.
-
-    Shape: {"result": {"error": {"objectType":..., "code":..., "message":...}}}
-    Returns the error dict, or None.
-    """
-    if isinstance(data, dict):
-        error = data.get('error')
-        if isinstance(error, dict) and ('code' in error or 'message' in error):
-            return error
-        for value in data.values():
-            found = find_api_error(value)
-            if found:
-                return found
-    elif isinstance(data, list):
-        for item in data:
-            found = find_api_error(item)
-            if found:
-                return found
-    return None
 
 
 def describe_api_error(error):

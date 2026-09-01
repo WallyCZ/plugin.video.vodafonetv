@@ -15,6 +15,70 @@ from urllib.error import HTTPError, URLError
 # responses while still bounding a dead connection.
 API_TIMEOUT = 30
 
+# Kaltura's way of saying "the session token you sent is not accepted any
+# more". 500016 is the one seen in the wild ("KS expired"); 500015 is its
+# invalid-token sibling. The clock is rarely the reason: the service throws
+# every ks a device holds away the moment that device is removed in the
+# Vodafone TV administration, so a session we still consider valid starts
+# coming back as expired. libs.session.recover_expired turns that into a new
+# login -- or, when the device really is gone, into a message that says so.
+KS_ERROR_CODES = ('500015', '500016')
+
+# Same failure spelled out in words, for the responses that carry no code.
+KS_ERROR_TEXTS = ('ks expired', 'expired ks', 'invalid ks', 'ks not valid')
+
+
+def find_api_error(data):
+    """The API also reports failures inside 200 responses -- find those too.
+
+    Shape: {"result": {"error": {"objectType":..., "code":..., "message":...}}}
+    Returns the error dict, or None.
+    """
+    if isinstance(data, dict):
+        error = data.get('error')
+        if isinstance(error, dict) and ('code' in error or 'message' in error):
+            return error
+        for value in data.values():
+            found = find_api_error(value)
+            if found:
+                return found
+    elif isinstance(data, list):
+        for item in data:
+            found = find_api_error(item)
+            if found:
+                return found
+    return None
+
+
+def is_ks_error(data):
+    """True when a response failed because our ks is no longer accepted.
+
+    Handles both shapes: the error inside a 200 body, and the JSON body of an
+    HTTP error, which call_api hands back as {'err': ..., 'body': '<json>'}.
+    """
+    if not isinstance(data, dict):
+        return False
+
+    candidates = [data]
+    body = data.get('body')
+    if isinstance(body, str) and body:
+        try:
+            candidates.append(json.loads(body))
+        except ValueError:
+            candidates.append({'error': {'message': body}})
+
+    for candidate in candidates:
+        error = find_api_error(candidate)
+        if not error:
+            continue
+        if str(error.get('code', '')) in KS_ERROR_CODES:
+            return True
+        message = str(error.get('message', '')).lower()
+        if any(text in message for text in KS_ERROR_TEXTS):
+            return True
+    return False
+
+
 class API:
     def __init__(self):
         self.headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0', 'Accept-Encoding' : 'gzip', 'Accept' : '*/*', 'Content-type' : 'application/json;charset=UTF-8'}
@@ -63,6 +127,7 @@ def list_api(post, nolog = False, silent = False, retries = 2):
     result = []
     api = API()
     fetch = True
+    renewed = False
     while fetch == True:
         # Fetch one page, retrying a few times on a transient failure (e.g. a
         # read timeout on a slow connection) before giving up.
@@ -71,6 +136,16 @@ def list_api(post, nolog = False, silent = False, retries = 2):
             data = api.call_api(url = 'https://3062.vfp2.ott.kaltura.com/api_v3/service/asset/action/list', data = post, headers = api.headers, nolog = nolog)
             if isinstance(data, dict) and 'result' in data and 'totalCount' in data['result']:
                 break
+            if is_ks_error(data) and renewed == False:
+                # The ks in the body is stale. Sign in again once and repeat the
+                # page with the new one; retrying with the old ks never works.
+                from libs.session import recover_expired
+                renewed = True
+                session = recover_expired(data, prompt = not silent)
+                if session is not None:
+                    post['ks'] = session.ks
+                    continue
+                return result
             if attempt < retries:
                 attempt += 1
                 xbmc.log('Vodafone TV > opakuji stažení dat (%d/%d)' % (attempt, retries),

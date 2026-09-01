@@ -1,4 +1,4 @@
-﻿<addon id="plugin.video.vodafonetv" name="Vodafone TV" provider-name="wally" version="1.0.1">
+﻿<addon id="plugin.video.vodafonetv" name="Vodafone TV" provider-name="wally" version="1.0.2">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="inputstream.adaptive" version="19.0.0"/>
@@ -26,11 +26,11 @@ Addon byl vytvořen na základě addonu O2TV od Waladira.
     <platform>all</platform>
     <source>https://github.com/WallyCZ/plugin.video.vodafonetv</source>
     <news>
-v1.0.0
-- živé vysílání, archiv, nahrávky a vyhledávání
-- přepínání profilů, přihlášení přes jméno/heslo nebo QR kód
-- export do IPTV Simple Client
-- nastavení rozděleno podle úrovní, diagnostika na úrovni Expert
+v1.0.2
+- Videotéka: seriály se rozbalí na epizody (dřív hlásily "Epizody se
+  nepodařilo načíst"); epizody jsou seřazené a označené S01E01 – název
+- vypršelou přihlašovací relaci doplněk obnoví sám; když bylo zařízení
+  odebráno ve správě účtu, nabídne přihlášení znovu místo "Problém při přehrání"
     </news>
     <assets>
         <icon>icon.png</icon>
