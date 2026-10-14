@@ -48,7 +48,7 @@ Máte dvě možnosti:</p>
       (typicky po reinstalaci doplňku, kdy vznikne nové Device ID a to staré
       dál drží svůj soubor),</li>
   <li><b>obstarat si vlastní <code>.wvd</code></b> -- pak server vůbec
-      nepotřebujete a žádný limit se vás netýká. Jak na to, viz další bod.</li>
+      nepotřebujete a žádný limit se vás netýká. To lze buď zkopírováním .wvd souboru z jiné už fungující Kodi instance s funkčním Vodafone TV addonem, popř. získat úplně nový - jak na to, viz další bod.</li>
 </ul>
 
 <h4>Jak si obstarám vlastní <code>.wvd</code>?</h4>
