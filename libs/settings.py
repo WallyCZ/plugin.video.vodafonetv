@@ -35,7 +35,7 @@ class Settings:
         addon_userdata_dir = translatePath(addon.getAddonInfo('profile'))
         filename = os.path.join(addon_userdata_dir, file['filename'])
         try:
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write('%s\n' % data)
         except IOError:
             xbmcgui.Dialog().notification('Vodafone TV', 'Chyba uložení ' + file['description'], xbmcgui.NOTIFICATION_ERROR, 5000)
@@ -46,7 +46,7 @@ class Settings:
         addon_userdata_dir = translatePath(addon.getAddonInfo('profile'))
         filename = os.path.join(addon_userdata_dir, file['filename'])
         try:
-            with open(filename, "r") as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 for row in f:
                     data = row[:-1]
         except IOError as error:

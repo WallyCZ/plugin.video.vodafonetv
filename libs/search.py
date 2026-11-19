@@ -392,14 +392,14 @@ def save_search_history(query):
     history = []
     filename = addon_userdata_dir + 'search_history.txt'
     try:
-        with open(filename, 'r') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             for line in file:
                 item = line[:-1]
                 history.append(item)
     except IOError:
         history = []
     history.insert(0,query)
-    with open(filename, 'w') as file:
+    with open(filename, 'w', encoding='utf-8') as file:
         for item  in history:
             cnt = cnt + 1
             if cnt <= max_history:
@@ -411,7 +411,7 @@ def load_search_history():
     addon_userdata_dir = translatePath(addon.getAddonInfo('profile')) 
     filename = addon_userdata_dir + 'search_history.txt'
     try:
-        with open(filename, 'r') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             for line in file:
                 item = line[:-1]
                 history.append(item)
@@ -428,7 +428,7 @@ def delete_search(query):
         if item == query:
             history.remove(item)
     try:
-        with open(filename, 'w') as file:
+        with open(filename, 'w', encoding='utf-8') as file:
             for item in history:
                 file.write('%s\n' % item)
     except IOError:
